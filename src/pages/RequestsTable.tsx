@@ -6,35 +6,62 @@ function RequestsTable() {
   const [requests, setRequests] = useState<APIRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    method: '',
-    search: '',
-    sort_by: 'created_at' as 'created_at' | 'response_time',
-    order: 'desc' as 'asc' | 'desc',
-  });
+  method: '',
+  search: '',
+  response_code_range: '',
+  start_date: '', // NEW!
+  end_date: '', // NEW!
+  min_response_time: '', // NEW!
+  max_response_time: '', // NEW!
+  sort_by: 'created_at' as 'created_at' | 'response_time',
+  order: 'desc' as 'asc' | 'desc',
+});
 
   useEffect(() => {
     fetchRequests();
   }, [filters]);
 
   const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      const params: any = {
-        sort_by: filters.sort_by,
-        order: filters.order,
-      };
-      
-      if (filters.method) params.method = filters.method;
-      if (filters.search) params.search = filters.search;
-
-      const response = await requestsAPI.getAll(params);
-      setRequests(response.data);
-    } catch (error) {
-      console.error('Error fetching requests:', error);
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const params: any = {
+      sort_by: filters.sort_by,
+      order: filters.order,
+    };
+    
+    if (filters.method) params.method = filters.method;
+    if (filters.search) params.search = filters.search;
+    
+    // Handle date range filtering - NEW!
+    if (filters.start_date) params.start_date = filters.start_date;
+    if (filters.end_date) params.end_date = filters.end_date;
+    
+    // Handle response time filtering - NEW!
+    if (filters.min_response_time) params.min_response_time = filters.min_response_time;
+    if (filters.max_response_time) params.max_response_time = filters.max_response_time;
+    
+    // Handle response code range filtering
+    if (filters.response_code_range) {
+      if (filters.response_code_range === '2xx') {
+        params.min_response_code = 200;
+        params.max_response_code = 299;
+      } else if (filters.response_code_range === '4xx') {
+        params.min_response_code = 400;
+        params.max_response_code = 499;
+      } else if (filters.response_code_range === '5xx') {
+        params.min_response_code = 500;
+        params.max_response_code = 599;
+      }
     }
-  };
+
+    const response = await requestsAPI.getAll(params);
+    setRequests(response.data);
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getMethodColor = (method: string) => {
     const colors: Record<string, string> = {
@@ -75,56 +102,201 @@ function RequestsTable() {
       </div>
 
       {/* Filters */}
-      <div className={css({
-        background: 'rgba(26, 17, 40, 0.6)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(139, 92, 246, 0.3)',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        marginBottom: '2rem',
-        display: 'flex',
-        gap: '1rem',
-        flexWrap: 'wrap',
-      })}>
-        <input
-          type="text"
-          placeholder="Search by path..."
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          className={css({
-            background: 'rgba(0,0,0,0.3)',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            borderRadius: '8px',
-            padding: '0.5rem 1rem',
-            color: 'white',
-            flex: '1',
-            minWidth: '200px',
-            '&:focus': {
-              outline: 'none',
-              border: '1px solid rgba(139, 92, 246, 0.6)',
-            },
-          })}
-        />
+<div className={css({
+  background: 'rgba(26, 17, 40, 0.6)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(139, 92, 246, 0.3)',
+  borderRadius: '12px',
+  padding: '1.5rem',
+  marginBottom: '2rem',
+  display: 'flex',
+  gap: '1rem',
+  flexWrap: 'wrap',
+})}>
+  <input
+    type="text"
+    placeholder="Search by path..."
+    value={filters.search}
+    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+    className={css({
+      background: 'rgba(0,0,0,0.3)',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      color: 'white',
+      flex: '1',
+      minWidth: '200px',
+      '&:focus': {
+        outline: 'none',
+        border: '1px solid rgba(139, 92, 246, 0.6)',
+      },
+    })}
+  />
 
-        <select
-          value={filters.method}
-          onChange={(e) => setFilters({ ...filters, method: e.target.value })}
-          className={css({
-            background: 'rgba(0,0,0,0.3)',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            borderRadius: '8px',
-            padding: '0.5rem 1rem',
-            color: 'white',
-            cursor: 'pointer',
-          })}
-        >
-          <option value="">All Methods</option>
-          <option value="GET">GET</option>
-          <option value="POST">POST</option>
-          <option value="PUT">PUT</option>
-          <option value="DELETE">DELETE</option>
-        </select>
-      </div>
+  <select
+    value={filters.method}
+    onChange={(e) => setFilters({ ...filters, method: e.target.value })}
+    className={css({
+      background: 'rgba(0,0,0,0.3)',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      color: 'white',
+      cursor: 'pointer',
+    })}
+  >
+    <option value="">All Methods</option>
+    <option value="GET">GET</option>
+    <option value="POST">POST</option>
+    <option value="PUT">PUT</option>
+    <option value="DELETE">DELETE</option>
+  </select>
+
+  {/* Response Code Filter - ADD THIS HERE! */}
+  <select
+    value={filters.response_code_range}
+    onChange={(e) => setFilters({ ...filters, response_code_range: e.target.value })}
+    className={css({
+      background: 'rgba(0,0,0,0.3)',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      color: 'white',
+      cursor: 'pointer',
+    })}
+  >
+    <option value="">All Response Codes</option>
+    <option value="2xx">2xx Success</option>
+    <option value="4xx">4xx Client Error</option>
+    <option value="5xx">5xx Server Error</option>
+  </select>
+</div>
+{/* Date Range Filters - NEW! */}
+<div className={css({ display: 'flex', gap: '0.5rem', alignItems: 'center' })}>
+  <label className={css({ color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem', whiteSpace: 'nowrap' })}>
+    From:
+  </label>
+  <input
+    type="datetime-local"
+    value={filters.start_date}
+    onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
+    className={css({
+      background: 'rgba(0,0,0,0.3)',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      color: 'white',
+      cursor: 'pointer',
+      '&::-webkit-calendar-picker-indicator': {
+        filter: 'invert(1)',
+      },
+    })}
+  />
+</div>
+
+<div className={css({ display: 'flex', gap: '0.5rem', alignItems: 'center' })}>
+  <label className={css({ color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem', whiteSpace: 'nowrap' })}>
+    To:
+  </label>
+  <input
+    type="datetime-local"
+    value={filters.end_date}
+    onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
+    className={css({
+      background: 'rgba(0,0,0,0.3)',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      color: 'white',
+      cursor: 'pointer',
+      '&::-webkit-calendar-picker-indicator': {
+        filter: 'invert(1)',
+      },
+    })}
+  />
+</div>
+
+{/* Response Time Range - NEW! */}
+<div className={css({ display: 'flex', gap: '0.5rem', alignItems: 'center' })}>
+  <label className={css({ color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem', whiteSpace: 'nowrap' })}>
+    Min (ms):
+  </label>
+  <input
+    type="number"
+    placeholder="0"
+    value={filters.min_response_time}
+    onChange={(e) => setFilters({ ...filters, min_response_time: e.target.value })}
+    className={css({
+      background: 'rgba(0,0,0,0.3)',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      color: 'white',
+      width: '100px',
+      '&:focus': {
+        outline: 'none',
+        border: '1px solid rgba(139, 92, 246, 0.6)',
+      },
+    })}
+  />
+</div>
+
+<div className={css({ display: 'flex', gap: '0.5rem', alignItems: 'center' })}>
+  <label className={css({ color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem', whiteSpace: 'nowrap' })}>
+    Max (ms):
+  </label>
+  <input
+    type="number"
+    placeholder="5000"
+    value={filters.max_response_time}
+    onChange={(e) => setFilters({ ...filters, max_response_time: e.target.value })}
+    className={css({
+      background: 'rgba(0,0,0,0.3)',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      color: 'white',
+      width: '100px',
+      '&:focus': {
+        outline: 'none',
+        border: '1px solid rgba(139, 92, 246, 0.6)',
+      },
+    })}
+  />
+</div>
+
+{/* Clear Filters Button - BONUS! */}
+{(filters.start_date || filters.end_date || filters.method || filters.response_code_range || 
+  filters.search || filters.min_response_time || filters.max_response_time) && (
+  <button
+    onClick={() => setFilters({
+      method: '',
+      search: '',
+      response_code_range: '',
+      start_date: '',
+      end_date: '',
+      min_response_time: '',
+      max_response_time: '',
+      sort_by: 'created_at',
+      order: 'desc',
+    })}
+    className={css({
+      background: 'rgba(239, 68, 68, 0.2)',
+      border: '1px solid rgba(239, 68, 68, 0.4)',
+      borderRadius: '8px',
+      padding: '0.5rem 1rem',
+      color: 'white',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+      whiteSpace: 'nowrap',
+      '&:hover': {
+        background: 'rgba(239, 68, 68, 0.3)',
+      },
+    })}
+  >
+    Clear Filters
+  </button>
+)}
 
       {/* Loading State */}
       {loading && (

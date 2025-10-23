@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { css } from '../../styled-system/css';
 import { requestsAPI, type APIRequest } from '../services/api';
 import { Clock, Zap, MapPin } from 'lucide-react';
-import { useLayoutEffect } from 'react';
-
+// Architecture follows ArkUI/ParkUI design patterns for component composition
+// Using Panda CSS for styling with design tokens
 /** Polished inline sparkline that matches the figma style */
 function Sparkline() {
   return (

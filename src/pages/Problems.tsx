@@ -12,6 +12,7 @@ function Problems() {
     sort_by: 'created_at' as 'created_at' | 'severity',
     order: 'desc' as 'asc' | 'desc',
   });
+  const [view, setView] = useState<'list' | 'table'>('list'); // NEW!
 
   useEffect(() => {
     fetchProblems();
@@ -203,6 +204,50 @@ function Problems() {
           {filters.order === 'asc' ? '↑ Ascending' : '↓ Descending'}
         </button>
       </div>
+      {/* View Toggle - NEW! */}
+      <div className={css({ 
+        display: 'flex', 
+        gap: '0.5rem', 
+        marginBottom: '2rem',
+        justifyContent: 'flex-end',
+      })}>
+        <button
+          onClick={() => setView('list')}
+          className={css({
+            background: view === 'list' ? 'rgba(168, 85, 247, 0.3)' : 'rgba(26, 17, 40, 0.6)',
+            border: view === 'list' ? '1px solid rgba(139, 92, 246, 0.6)' : '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '8px',
+            padding: '0.5rem 1.5rem',
+            color: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            fontWeight: view === 'list' ? '600' : '400',
+            '&:hover': {
+              background: 'rgba(168, 85, 247, 0.2)',
+            },
+          })}
+        >
+          List View
+        </button>
+        <button
+          onClick={() => setView('table')}
+          className={css({
+            background: view === 'table' ? 'rgba(168, 85, 247, 0.3)' : 'rgba(26, 17, 40, 0.6)',
+            border: view === 'table' ? '1px solid rgba(139, 92, 246, 0.6)' : '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '8px',
+            padding: '0.5rem 1.5rem',
+            color: 'white',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            fontWeight: view === 'table' ? '600' : '400',
+            '&:hover': {
+              background: 'rgba(168, 85, 247, 0.2)',
+            },
+          })}
+        >
+          Table View
+        </button>
+      </div>
 
       {/* Loading State */}
       {loading && (
@@ -228,87 +273,165 @@ function Problems() {
         </div>
       )}
 
-      {/* Problems List */}
-      {!loading && problems.length > 0 && (
-        <div className={css({ display: 'flex', flexDirection: 'column', gap: '1rem' })}>
-          {problems.map((problem) => (
-            <div
-              key={problem.id}
-              className={css({
-                background: 'rgba(26, 17, 40, 0.6)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                transition: 'all 0.3s',
-                '&:hover': {
-                  border: '1px solid rgba(139, 92, 246, 0.6)',
-                  transform: 'translateY(-2px)',
-                },
-              })}
-            >
-              <div className={css({ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' })}>
-                {/* Icon */}
-                <AlertCircle 
-                  size={24} 
-                  style={{ color: getSeverityColor(problem.severity) }}
-                />
+     {/* Problems List/Table */}
+{!loading && problems.length > 0 && (
+  <>
+    {view === 'list' ? (
+      // List View
+      <div className={css({ display: 'flex', flexDirection: 'column', gap: '1rem' })}>
+        {problems.map((problem) => (
+          <div
+            key={problem.id}
+            className={css({
+              background: 'rgba(26, 17, 40, 0.6)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '12px',
+              padding: '1.5rem',
+              transition: 'all 0.3s',
+              '&:hover': {
+                border: '1px solid rgba(139, 92, 246, 0.6)',
+                transform: 'translateY(-2px)',
+              },
+            })}
+          >
+            <div className={css({ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' })}>
+              <AlertCircle 
+                size={24} 
+                style={{ color: getSeverityColor(problem.severity) }}
+              />
 
-                {/* Problem Type Badge */}
-                <span
-                  className={css({
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '6px',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                  })}
-                  style={{ backgroundColor: getProblemTypeColor(problem.problem_type), color: 'white' }}
-                >
-                  {getProblemTypeLabel(problem.problem_type)}
-                </span>
-
-                {/* Severity Badge */}
-                <span
-                  className={css({
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '6px',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    textTransform: 'uppercase',
-                  })}
-                  style={{ backgroundColor: getSeverityColor(problem.severity), color: 'white' }}
-                >
-                  {problem.severity}
-                </span>
-
-                {/* Time */}
-                <div className={css({ 
-                  marginLeft: 'auto', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem',
-                  color: 'rgba(255,255,255,0.6)',
+              <span
+                className={css({
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '6px',
                   fontSize: '0.875rem',
-                })}>
-                  <Clock size={16} />
-                  {new Date(problem.created_at).toLocaleString()}
-                </div>
+                  fontWeight: '600',
+                })}
+                style={{ backgroundColor: getProblemTypeColor(problem.problem_type), color: 'white' }}
+              >
+                {getProblemTypeLabel(problem.problem_type)}
+              </span>
+
+              <span
+                className={css({
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                })}
+                style={{ backgroundColor: getSeverityColor(problem.severity), color: 'white' }}
+              >
+                {problem.severity}
+              </span>
+
+              <div className={css({ 
+                marginLeft: 'auto', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem',
+                color: 'rgba(255,255,255,0.6)',
+                fontSize: '0.875rem',
+              })}>
+                <Clock size={16} />
+                {new Date(problem.created_at).toLocaleString()}
               </div>
-
-              {/* Description */}
-              <p className={css({ color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' })}>
-                {problem.description}
-              </p>
-
-              {/* Request ID */}
-              <p className={css({ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem' })}>
-                Request ID: #{problem.request_id}
-              </p>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+
+            <p className={css({ color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem' })}>
+              {problem.description}
+            </p>
+
+            <p className={css({ color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem' })}>
+              Request ID: #{problem.request_id}
+            </p>
+          </div>
+        ))}
+      </div>
+    ) : (
+      // Table View - NEW!
+      <div className={css({
+        background: 'rgba(26, 17, 40, 0.6)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+        borderRadius: '12px',
+        overflow: 'hidden',
+      })}>
+        <table className={css({ width: '100%', borderCollapse: 'collapse' })}>
+          <thead>
+            <tr className={css({
+              background: 'rgba(139, 92, 246, 0.1)',
+              borderBottom: '1px solid rgba(139, 92, 246, 0.3)',
+            })}>
+              <th className={tableHeaderStyle}>Problem Type</th>
+              <th className={tableHeaderStyle}>Severity</th>
+              <th className={tableHeaderStyle}>Description</th>
+              <th className={tableHeaderStyle}>Request ID</th>
+              <th className={tableHeaderStyle}>Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {problems.map((problem, index) => (
+              <tr
+                key={problem.id}
+                className={css({
+                  borderBottom: index !== problems.length - 1 ? '1px solid rgba(139, 92, 246, 0.1)' : 'none',
+                  transition: 'background 0.2s',
+                  '&:hover': {
+                    background: 'rgba(139, 92, 246, 0.1)',
+                  },
+                })}
+              >
+                <td className={tableCellStyle}>
+                  <span
+                    className={css({
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '6px',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      display: 'inline-block',
+                    })}
+                    style={{ backgroundColor: getProblemTypeColor(problem.problem_type), color: 'white' }}
+                  >
+                    {getProblemTypeLabel(problem.problem_type)}
+                  </span>
+                </td>
+                <td className={tableCellStyle}>
+                  <span
+                    className={css({
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '6px',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      display: 'inline-block',
+                    })}
+                    style={{ backgroundColor: getSeverityColor(problem.severity), color: 'white' }}
+                  >
+                    {problem.severity}
+                  </span>
+                </td>
+                <td className={tableCellStyle}>
+                  {problem.description}
+                </td>
+                <td className={tableCellStyle}>
+                  <span className={css({ fontFamily: 'monospace', color: 'rgba(255,255,255,0.6)' })}>
+                    #{problem.request_id}
+                  </span>
+                </td>
+                <td className={tableCellStyle}>
+                  {new Date(problem.created_at).toLocaleString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </>
+)}
+ </div>
   );
 }
 
@@ -339,5 +462,19 @@ function StatCard({ label, value, color }: StatCardProps) {
     </div>
   );
 }
+const tableHeaderStyle = css({
+  padding: '1rem',
+  textAlign: 'left',
+  fontWeight: '600',
+  color: 'rgba(255,255,255,0.9)',
+  fontSize: '0.875rem',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+});
+
+const tableCellStyle = css({
+  padding: '1rem',
+  color: 'rgba(255,255,255,0.8)',
+});
 
 export default Problems;

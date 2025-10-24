@@ -136,7 +136,7 @@ function Dashboard() {
   const [requests, setRequests] = useState<APIRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'table'>('list');
-  const [showDock, setShowDock] = useState(false);
+  const [_showDock, setShowDock] = useState(false);
   const requestsRef = useRef<HTMLDivElement>(null);
 
   const [filters, setFilters] = useState({
@@ -146,6 +146,7 @@ function Dashboard() {
     order: 'desc' as 'asc' | 'desc',
   });
 
+ 
   // ---------- Pagination ----------
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -159,7 +160,7 @@ function Dashboard() {
   }
   // measure/lock panel height during fetch
 const panelRef = useRef<HTMLDivElement>(null);
-const [panelMinH, setPanelMinH] = useState<number | undefined>(undefined);
+const [_panelMinH, setPanelMinH] = useState<number | undefined>(undefined);
 
 // when filters change, start from page 1 to reduce jumps
 useEffect(() => { setPage(1); }, [filters]);
@@ -580,21 +581,4 @@ const tableBadge = css({
   color:'#fff',
   boxShadow:'inset 0 0 0 1px rgba(255,255,255,0.12)',
 });
-
-/* legacy th/td used elsewhere */
-const th = css({
-  padding:'14px 16px',
-  textAlign:'left',
-  fontWeight:700,
-  color:'rgba(255,255,255,0.92)',
-  fontSize:'12px',
-  textTransform:'uppercase',
-  letterSpacing:'0.06em'
-});
-const td = css({
-  padding:'14px 16px',
-  color:'rgba(255,255,255,0.86)',
-  fontSize:'15px'
-});
-
 export default Dashboard;
